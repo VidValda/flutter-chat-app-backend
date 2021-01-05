@@ -17,7 +17,7 @@
             console.log("Perdimos conección con el servidor")
         });
 
-        cliente.emit("mensaje", {nombre: "fernando"});
+        cliente.emit("mensaje", {nombre: "Fernando"});
 
         cliente.on("mensaje", function(payload){
             console.log("Escuchando: ", payload)
