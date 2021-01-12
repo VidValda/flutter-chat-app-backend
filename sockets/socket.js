@@ -1,23 +1,33 @@
 
+const { comprobarJWT } = require("../helpers/jwt");
 const {io} = require("../index");
-const Band = require("../models/band");
-const Bands = require("../models/bands");
+const {userConnected,userDisconnected,grabarMensaje} = require("../controllers/socket")
 
-const bands = new Bands();
-
-bands.addBand(new Band("Faraon Love Shaddy"));
-bands.addBand(new Band("Bon jovi"));
-bands.addBand(new Band("Héroes del silencio"));
-bands.addBand(new Band("Metallica"));
 
 
 
 //Mensajes de Sockets
 io.on('connection', client => {
     console.log("Cliente conectado");
+    const[valido, uid] = comprobarJWT(client.handshake.headers["x-token"])
+    // Verify authenticcation
+    if(!valido){return client.disconnect();}
+    // authenticated client
+    userConnected(uid);
+    // Ingresar a una sala al cliente
+    // Sala global, client.id, 5ffbcdd9d76586632844f36f
+    client.join(uid);
+    // Escuchar mensaje del cliente
+    client.on("mensaje-personal", async (payload)=>{
+        await grabarMensaje(payload);
+        io.to(payload.to).emit("mensaje-personal",payload);
+    });
     
+
+
+
     client.on('disconnect', () => {
-        console.log("Cliente desconectado");
+        userDisconnected(uid);
     });
 });
 
